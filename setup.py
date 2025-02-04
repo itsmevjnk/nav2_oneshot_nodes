@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = 'nav2_localisation_init'
+package_name = 'nav2_oneshot_nodes'
 
 setup(
     name=package_name,
@@ -24,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'localisation_init = nav2_localisation_init.localisation_init:main'
+            'localisation_init = nav2_oneshot_nodes.localisation_init:main'
         ],
     },
 )
