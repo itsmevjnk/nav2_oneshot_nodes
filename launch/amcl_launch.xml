@@ -1,0 +1,20 @@
+<launch>
+    <arg name="map_frame" default="map" />
+    <arg name="odom_frame" default="odom" />
+
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="yaw" default="0.0" />
+
+    <arg name="use_sim_time" default="false" />
+
+    <node name="localisation_init" pkg="nav2_localisation_init" exec="localisation_init" output="screen">
+        <param name="map_frame" value="$(var map_frame)" />
+        <param name="odom_frame" value="$(var odom_frame)" />
+        <param name="x" value="$(var x)" />
+        <param name="y" value="$(var y)" />
+        <param name="yaw" value="$(var yaw)" />
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+        <remap from="init_pose/cov" to="/initialpose" /> <!-- compatible with Nav2 AMCL -->
+    </node>
+</launch>
