@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'localisation_init = nav2_oneshot_nodes.localisation_init:main'
+            'localisation_init = nav2_oneshot_nodes.localisation_init:main',
+            'set_goal = nav2_oneshot_nodes.set_goal:main'
         ],
     },
 )
