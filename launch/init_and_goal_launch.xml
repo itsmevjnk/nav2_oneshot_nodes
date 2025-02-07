@@ -1,0 +1,48 @@
+<launch>
+    <arg name="map_frame" default="map" />
+    <arg name="odom_frame" default="odom" />
+
+    <arg name="init_x" default="0.0" />
+    <arg name="init_y" default="0.0" />
+    <arg name="init_yaw" default="0.0" />
+
+    <arg name="goal_x" default="0.0" />
+    <arg name="goal_y" default="0.0" />
+    <arg name="goal_yaw" default="0.0" />
+
+    <arg name="use_sim_time" default="false" />
+    <arg name="use_commander" default="true" />
+
+    <node name="init_and_goal" pkg="nav2_oneshot_nodes" exec="sc_init_and_goal" output="screen" if="$(var use_commander)">
+        <param name="map_frame" value="$(var map_frame)" />
+        <param name="init_x" value="$(var init_x)" />
+        <param name="init_y" value="$(var init_y)" />
+        <param name="init_yaw" value="$(var init_yaw)" />
+        <param name="goal_x" value="$(var goal_x)" />
+        <param name="goal_y" value="$(var goal_y)" />
+        <param name="goal_yaw" value="$(var goal_yaw)" />
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+    </node>
+
+    <group unless="$(var use_commander)">
+        <include file="$(find-pkg-share nav2_oneshot_nodes)/launch/amcl_init_launch.xml">
+            <arg name="map_frame" value="$(var map_frame)" />
+            <arg name="odom_frame" value="$(var odom_frame)" />
+            <arg name="x" value="$(var init_x)" />
+            <arg name="y" value="$(var init_y)" />
+            <arg name="yaw" value="$(var init_yaw)" />
+            <arg name="use_sim_time" value="$(var use_sim_time)" />
+            <arg name="use_commander" value="false" />
+        </include>
+
+        <include file="$(find-pkg-share nav2_oneshot_nodes)/launch/goal_launch.xml">
+            <arg name="map_frame" value="$(var map_frame)" />
+            <arg name="odom_frame" value="$(var odom_frame)" />
+            <arg name="x" value="$(var goal_x)" />
+            <arg name="y" value="$(var goal_y)" />
+            <arg name="yaw" value="$(var goal_yaw)" />
+            <arg name="use_sim_time" value="$(var use_sim_time)" />
+            <arg name="use_commander" value="false" />
+        </include>
+    </group>
+</launch>

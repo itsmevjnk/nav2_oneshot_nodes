@@ -28,6 +28,7 @@ setup(
             'set_goal = nav2_oneshot_nodes.set_goal:main',
             'sc_localisation_init = nav2_oneshot_nodes.sc_localisation_init:main',
             'sc_set_goal = nav2_oneshot_nodes.sc_set_goal:main',
+            'sc_init_and_goal = nav2_oneshot_nodes.sc_init_and_goal:main',
         ],
     },
 )
