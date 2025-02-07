@@ -25,7 +25,9 @@ setup(
     entry_points={
         'console_scripts': [
             'localisation_init = nav2_oneshot_nodes.localisation_init:main',
-            'set_goal = nav2_oneshot_nodes.set_goal:main'
+            'set_goal = nav2_oneshot_nodes.set_goal:main',
+            'sc_localisation_init = nav2_oneshot_nodes.sc_localisation_init:main',
+            'sc_set_goal = nav2_oneshot_nodes.sc_set_goal:main',
         ],
     },
 )
