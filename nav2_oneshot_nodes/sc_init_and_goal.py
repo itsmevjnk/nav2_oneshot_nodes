@@ -27,6 +27,9 @@ def main():
     navigator.get_logger().info(f'waiting until Nav2 becomes active')
     navigator.waitUntilNav2Active()
 
+    navigator.get_logger().info(f'clearing costmaps')
+    navigator.clearAllCostmaps()
+
     # make goal pose
     goal_pose = PoseStamped()
     goal_pose.header.frame_id = map_frame

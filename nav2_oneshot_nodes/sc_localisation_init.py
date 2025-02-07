@@ -25,6 +25,9 @@ def main():
     navigator.get_logger().info(f'waiting until Nav2 becomes active')
     navigator.waitUntilNav2Active()
 
+    navigator.get_logger().info(f'clearing costmaps')
+    navigator.clearAllCostmaps()
+
     rclpy.shutdown()
 
 if __name__ == '__main__':
