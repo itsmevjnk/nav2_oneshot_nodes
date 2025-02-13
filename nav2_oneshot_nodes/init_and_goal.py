@@ -30,10 +30,10 @@ class InitAndGoal(Node):
         self.init_x = self.declare_parameter('init_x', 0.0).get_parameter_value().double_value
         self.init_y = self.declare_parameter('init_y', 0.0).get_parameter_value().double_value
         self.init_yaw = self.declare_parameter('init_yaw', 0.0).get_parameter_value().double_value # in radians
-        self.pose = Pose()
-        self.pose.position.x = self.init_x
-        self.pose.position.y = self.init_y
-        self.pose.orientation.x, self.pose.orientation.y, self.pose.orientation.z, self.pose.orientation.w = Rotation.from_euler('z', self.init_yaw).as_quat()
+        self.init_pose = Pose()
+        self.init_pose.position.x = self.init_x
+        self.init_pose.position.y = self.init_y
+        self.init_pose.orientation.x, self.init_pose.orientation.y, self.init_pose.orientation.z, self.init_pose.orientation.w = Rotation.from_euler('z', self.init_yaw).as_quat()
 
         self.init_pos_err = self.declare_parameter('init_pos_err', 0.05).get_parameter_value().double_value
         self.init_yaw_err = self.declare_parameter('init_yaw_err', 0.1).get_parameter_value().double_value
@@ -95,12 +95,12 @@ class InitAndGoal(Node):
         )
         self.initpose_pub.publish(PoseStamped(
             header = header,
-            pose = self.pose
+            pose = self.init_pose
         ))
         self.initpose_cov_pub.publish(PoseWithCovarianceStamped(
             header = header,
             pose = PoseWithCovariance(
-                pose = self.pose,
+                pose = self.init_pose,
                 covariance = [
                     0.25, 0.0 , 0.0 , 0.0 , 0.0 , 0.0 ,
                     0.0 , 0.25, 0.0 , 0.0 , 0.0 , 0.0 ,
