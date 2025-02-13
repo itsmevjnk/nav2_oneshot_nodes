@@ -18,6 +18,8 @@
     <arg name="localiser" default="amcl" />
     <arg name="navigator" default="bt_navigator" />
 
+    <arg name="clear_costmaps" default="false" />
+
     <node name="init_and_goal" pkg="nav2_oneshot_nodes" exec="init_and_goal" output="screen">
         <param name="map_frame" value="$(var map_frame)" />
         <param name="init_x" value="$(var init_x)" />
@@ -31,6 +33,7 @@
         <param name="use_sim_time" value="$(var use_sim_time)" />
         <param name="localiser" value="$(var localiser)" />
         <param name="navigator" value="$(var navigator)" />
+        <param name="clear_costmaps" value="$(var clear_costmaps)" />
 
         <remap from="init_pose/cov" to="/initialpose" />
         <remap from="goal_pose" to="/goal_pose" />

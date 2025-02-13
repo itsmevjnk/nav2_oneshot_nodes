@@ -6,6 +6,7 @@ import rclpy.time
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseWithCovarianceStamped, Pose, PoseStamped, PoseWithCovariance
 from action_msgs.msg import GoalStatusArray, GoalStatus
+from nav2_msgs.srv import ClearEntireCostmap
 from lifecycle_msgs.srv import GetState
 
 from tf2_ros import TransformException
@@ -34,6 +35,14 @@ class InitAndGoal(Node):
         self.init_pose.position.x = self.init_x
         self.init_pose.position.y = self.init_y
         self.init_pose.orientation.x, self.init_pose.orientation.y, self.init_pose.orientation.z, self.init_pose.orientation.w = Rotation.from_euler('z', self.init_yaw).as_quat()
+
+        clear_costmaps = self.declare_parameter('clear_costmaps', False).get_parameter_value().bool_value
+        self.clear_costmap_srvs = dict()
+        if clear_costmaps:
+            self.clear_costmap_srvs = {
+                node: self.create_client(ClearEntireCostmap, f'/{node}/clear_entirely_{node}')
+                for node in ['local_costmap', 'global_costmap']
+            }
 
         self.init_pos_err = self.declare_parameter('init_pos_err', 0.05).get_parameter_value().double_value
         self.init_yaw_err = self.declare_parameter('init_yaw_err', 0.1).get_parameter_value().double_value
@@ -85,7 +94,8 @@ class InitAndGoal(Node):
         self.create_subscription(GoalStatusArray, 'goal_status', self.status_cb, latched_qos)
 
         self.goal_published = False
-        self.timer = self.create_timer(0.5, self.init_timer_cb)
+        self.callback_group = ReentrantCallbackGroup()
+        self.timer = self.create_timer(0.5, self.init_timer_cb, callback_group=self.callback_group)
 
     def publish_pose(self):
         self.get_logger().info(f'publishing initial pose')
@@ -138,9 +148,25 @@ class InitAndGoal(Node):
         if resend_pose:
             self.publish_pose()
         else:
-            self.get_logger().info(f'current pose is within error margin - proceeding with goal setting')
-            self.timer.cancel()
-            self.timer = self.create_timer(0.5, self.goal_timer_cb)
+            self.get_logger().info(f'current pose is within error margin')
+
+            if len(self.clear_costmap_srvs) > 0: # clear costmaps
+                event = Event()
+                def done_cb(future):
+                    nonlocal event
+                    event.set()
+
+                for node in self.clear_costmap_srvs:
+                    srv = self.clear_costmap_srvs[node]
+                    while not srv.wait_for_service(timeout_sec=1.0):
+                        self.get_logger().info(f'waiting until costmap node {node} is available')
+                    self.get_logger().info(f'clearing costmap of node {node}')
+                    srv.call_async(ClearEntireCostmap.Request()).add_done_callback(done_cb)
+                    event.wait()
+                    event.clear() # done!
+
+            self.timer.cancel(); self.destroy_timer(self.timer)
+            self.timer = self.create_timer(0.5, self.goal_timer_cb, callback_group=self.callback_group)
 
     def goal_timer_cb(self):
         if self.goal_pub.get_subscription_count() == 0:
@@ -165,16 +191,16 @@ class InitAndGoal(Node):
         self.get_logger().info(f'latest goal status: {latest_status.status}')
         if latest_status.status == 1 or latest_status.status == 2: # accepted/executing
             self.get_logger().info(f'goal started execution, exiting')
-            raise SystemExit
+            self.timer.cancel(); self.destroy_timer(self.timer)
+            rclpy.shutdown() # raise SystemExit doesn't work here
 
 def main():
     rclpy.init()
     node = InitAndGoal()
+    executor = MultiThreadedExecutor()
     try:
-        rclpy.spin(node)
+        rclpy.spin(node, executor)
     except KeyboardInterrupt:
-        pass
-    except SystemExit:
         pass
 
     rclpy.shutdown()

@@ -5,6 +5,7 @@ from rclpy.node import Node
 import rclpy.time
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseWithCovarianceStamped, Pose, PoseStamped, PoseWithCovariance
+from nav2_msgs.srv import ClearEntireCostmap
 from lifecycle_msgs.srv import GetState
 
 from tf2_ros import TransformException
@@ -25,6 +26,15 @@ class LocalisationInit(Node):
 
         self.map_frame = self.declare_parameter('map_frame', 'map').get_parameter_value().string_value
         self.robot_frame = self.declare_parameter('robot_frame', 'base_link').get_parameter_value().string_value
+
+        self.callback_group = ReentrantCallbackGroup()
+        clear_costmaps = self.declare_parameter('clear_costmaps', False).get_parameter_value().bool_value
+        self.clear_costmap_srvs = dict()
+        if clear_costmaps:
+            self.clear_costmap_srvs = {
+                node: self.create_client(ClearEntireCostmap, f'/{node}/clear_entirely_{node}')
+                for node in ['local_costmap', 'global_costmap']
+            }
         
         self.x = self.declare_parameter('x', 0.0).get_parameter_value().double_value
         self.y = self.declare_parameter('y', 0.0).get_parameter_value().double_value
@@ -60,7 +70,7 @@ class LocalisationInit(Node):
 
         self.publish_pose()
         
-        self.create_timer(0.5, self.timer_cb)
+        self.create_timer(0.5, self.timer_cb, callback_group=self.callback_group)
 
     def publish_pose(self):
         self.get_logger().info(f'publishing initial pose')
@@ -113,17 +123,32 @@ class LocalisationInit(Node):
         if resend_pose:
             self.publish_pose()
         else:
-            self.get_logger().info(f'current pose is within error margin - exiting')
-            raise SystemExit
+            self.get_logger().info(f'current pose is within error margin')
+
+            if len(self.clear_costmap_srvs) > 0: # clear costmaps
+                event = Event()
+                def done_cb(future):
+                    nonlocal event
+                    event.set()
+
+                for node in self.clear_costmap_srvs:
+                    srv = self.clear_costmap_srvs[node]
+                    while not srv.wait_for_service(timeout_sec=1.0):
+                        self.get_logger().info(f'waiting until costmap node {node} is available')
+                    self.get_logger().info(f'clearing costmap of node {node}')
+                    srv.call_async(ClearEntireCostmap.Request()).add_done_callback(done_cb)
+                    event.wait()
+                    event.clear() # done!
+
+            rclpy.shutdown() # raise SystemExit doesn't work here
 
 def main():
     rclpy.init()
     node = LocalisationInit()
+    executor = MultiThreadedExecutor()
     try:
-        rclpy.spin(node)
+        rclpy.spin(node, executor)
     except KeyboardInterrupt:
-        pass
-    except SystemExit:
         pass
 
     rclpy.shutdown()
