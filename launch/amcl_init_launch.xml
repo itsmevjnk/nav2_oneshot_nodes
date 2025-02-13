@@ -1,26 +1,27 @@
 <launch>
     <arg name="map_frame" default="map" />
-    <arg name="odom_frame" default="odom" />
+    <arg name="robot_frame" default="base_footprint" />
 
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="yaw" default="0.0" />
 
-    <arg name="use_sim_time" default="false" />
-    
-    <arg name="use_commander" default="true" />
-    <let name="sc_prefix" value="" />
-    <group scoped="false" if="$(var use_commander)">
-        <let name="sc_prefix" value="sc_" />
-    </group>
+    <arg name="pos_err" default="0.15" />
+    <arg name="yaw_err" default="0.1" />
 
-    <node name="localisation_init" pkg="nav2_oneshot_nodes" exec="$(var sc_prefix)localisation_init" output="screen">
+    <arg name="use_sim_time" default="false" />
+
+    <node name="localisation_init" pkg="nav2_oneshot_nodes" exec="localisation_init" output="screen">
         <param name="map_frame" value="$(var map_frame)" />
-        <param name="odom_frame" value="$(var odom_frame)" />
+        <param name="robot_frame" value="$(var robot_frame)" />
         <param name="x" value="$(var x)" />
         <param name="y" value="$(var y)" />
         <param name="yaw" value="$(var yaw)" />
+        <param name="pos_err" value="$(var pos_err)" />
+        <param name="yaw_err" value="$(var yaw_err)" />
         <param name="use_sim_time" value="$(var use_sim_time)" />
+
+        <param name="localiser" value="amcl" />
         <remap from="init_pose/cov" to="/initialpose" /> <!-- compatible with Nav2 AMCL -->
     </node>
 </launch>

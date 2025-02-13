@@ -3,12 +3,14 @@ from rclpy import qos
 from rclpy.node import Node
 
 import rclpy.time
+import time
 
 from geometry_msgs.msg import PoseStamped
 from action_msgs.msg import GoalStatusArray, GoalStatus
+from lifecycle_msgs.srv import GetState
 
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+# from tf2_ros.buffer import Buffer
+# from tf2_ros.transform_listener import TransformListener
 
 from scipy.spatial.transform import Rotation
 
@@ -17,10 +19,24 @@ class SetGoal(Node):
         super().__init__('set_goal')
 
         self.map_frame = self.declare_parameter('map_frame', 'map').get_parameter_value().string_value
-        self.odom_frame = self.declare_parameter('odom_frame', 'odom').get_parameter_value().string_value
         self.x = self.declare_parameter('x', 0.0).get_parameter_value().double_value
         self.y = self.declare_parameter('y', 0.0).get_parameter_value().double_value
         self.yaw = self.declare_parameter('yaw', 0.0).get_parameter_value().double_value # in radians
+
+        navigator = self.declare_parameter('navigator', 'bt_navigator').get_parameter_value().string_value
+        navigator_state_srv = self.create_client(GetState, f'/{navigator}/get_state')
+        while not navigator_state_srv.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info(f'waiting for navigator node {navigator} to show up')
+        while True:
+            future = navigator_state_srv.call_async(GetState.Request())
+            rclpy.spin_until_future_complete(self, future) # we can ONLY do this outside of callbacks!
+            if future.result() is None:
+                self.get_logger().error(f'navigator node {navigator} returned null for state retrieval request')
+            else:
+                state = future.result().current_state.label
+                self.get_logger().info(f'navigator node {navigator} status: {state}')
+                if state == 'active': break
+            time.sleep(0.5)
 
         qos_profile = qos.QoSProfile(
             reliability=qos.QoSReliabilityPolicy.RELIABLE,
@@ -29,11 +45,11 @@ class SetGoal(Node):
         ) # same as bt_navigator
         self.goal_pub = self.create_publisher(PoseStamped, 'goal_pose', qos_profile)
         
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        # self.tf_buffer = Buffer()
+        # self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.published = False
-        self.create_timer(0.1, self.timer_cb)
+        self.create_timer(0.5, self.timer_cb)
 
         latched_qos = qos.QoSProfile(
             reliability=qos.QoSReliabilityPolicy.RELIABLE,
@@ -43,9 +59,9 @@ class SetGoal(Node):
         self.create_subscription(GoalStatusArray, 'goal_status', self.status_cb, latched_qos)
 
     def timer_cb(self):
-        if not self.tf_buffer.can_transform(self.map_frame, self.odom_frame, rclpy.time.Time()):
-            self.get_logger().info(f'{self.map_frame} -> {self.odom_frame} transform does not exist - localisation might not be ready yet')
-            return
+        # if not self.tf_buffer.can_transform(self.map_frame, self.odom_frame, rclpy.time.Time()):
+        #     self.get_logger().info(f'{self.map_frame} -> {self.odom_frame} transform does not exist - localisation might not be ready yet')
+        #     return
 
         if self.goal_pub.get_subscription_count() == 0:
             self.get_logger().info('waiting for goal pose subscriber')

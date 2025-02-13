@@ -1,6 +1,7 @@
 <launch>
     <arg name="map_frame" default="map" />
-    <arg name="odom_frame" default="odom" />
+
+    <arg name="navigator" default="bt_navigator" />
 
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
@@ -8,15 +9,9 @@
 
     <arg name="use_sim_time" default="false" />
 
-    <arg name="use_commander" default="true" />
-    <let name="sc_prefix" value="" />
-    <group scoped="false" if="$(var use_commander)">
-        <let name="sc_prefix" value="sc_" />
-    </group>
-
-    <node name="set_goal" pkg="nav2_oneshot_nodes" exec="$(var sc_prefix)set_goal" output="screen">
+    <node name="set_goal" pkg="nav2_oneshot_nodes" exec="set_goal" output="screen">
         <param name="map_frame" value="$(var map_frame)" />
-        <param name="odom_frame" value="$(var odom_frame)" />
+        <param name="navigator" value="$(var navigator)" />
         <param name="x" value="$(var x)" />
         <param name="y" value="$(var y)" />
         <param name="yaw" value="$(var yaw)" />
