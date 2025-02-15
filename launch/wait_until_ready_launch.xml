@@ -1,0 +1,7 @@
+<launch>
+    <arg name="node" default="bt_navigator" />
+
+    <node exec="wait_until_ready" pkg="nav2_oneshot_nodes" name="wait_until_ready_$(var node)" output="screen">
+        <param name="node" value="$(var node)" />
+    </node>
+</launch>

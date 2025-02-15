@@ -27,6 +27,7 @@ setup(
             'localisation_init = nav2_oneshot_nodes.localisation_init:main',
             'set_goal = nav2_oneshot_nodes.set_goal:main',
             'init_and_goal = nav2_oneshot_nodes.init_and_goal:main',
+            'wait_until_ready = nav2_oneshot_nodes.wait_until_ready:main',
         ],
     },
 )
