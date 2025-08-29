@@ -12,7 +12,7 @@ def main():
     node = Node('wait_until_ready')
         
     node_name = node.declare_parameter('node', 'bt_navigator').get_parameter_value().string_value
-    localiser_state_srv = node.create_client(GetState, f'/{node_name}/get_state')
+    localiser_state_srv = node.create_client(GetState, f'{node_name}/get_state')
     while not localiser_state_srv.wait_for_service(timeout_sec=1.0):
         node.get_logger().info(f'waiting for node {node_name} to show up')
     while True:

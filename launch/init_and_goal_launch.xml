@@ -1,4 +1,6 @@
 <launch>
+    <arg name="namespace" default="/" />
+
     <arg name="map_frame" default="map" />
     <arg name="robot_frame" default="base_footprint" />
 
@@ -20,7 +22,7 @@
 
     <arg name="clear_costmaps" default="false" />
 
-    <node name="init_and_goal" pkg="nav2_oneshot_nodes" exec="init_and_goal" output="screen">
+    <node name="init_and_goal" pkg="nav2_oneshot_nodes" exec="init_and_goal" output="screen" namespace="$(var namespace)">
         <param name="map_frame" value="$(var map_frame)" />
         <param name="init_x" value="$(var init_x)" />
         <param name="init_y" value="$(var init_y)" />
@@ -35,8 +37,7 @@
         <param name="navigator" value="$(var navigator)" />
         <param name="clear_costmaps" value="$(var clear_costmaps)" />
 
-        <remap from="init_pose/cov" to="/initialpose" />
-        <remap from="goal_pose" to="/goal_pose" />
-        <remap from="goal_status" to="/navigate_to_pose/_action/status" />
+        <remap from="init_pose/cov" to="initialpose" />
+        <remap from="goal_status" to="navigate_to_pose/_action/status" />
     </node>
 </launch>

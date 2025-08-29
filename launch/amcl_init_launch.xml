@@ -1,4 +1,6 @@
 <launch>
+    <arg name="namespace" default="/" />
+
     <arg name="map_frame" default="map" />
     <arg name="robot_frame" default="base_footprint" />
 
@@ -12,7 +14,7 @@
     <arg name="use_sim_time" default="false" />
     <arg name="clear_costmaps" default="false" />
 
-    <node name="localisation_init" pkg="nav2_oneshot_nodes" exec="localisation_init" output="screen">
+    <node name="localisation_init" pkg="nav2_oneshot_nodes" exec="localisation_init" output="screen" namespace="$(var namespace)">
         <param name="map_frame" value="$(var map_frame)" />
         <param name="robot_frame" value="$(var robot_frame)" />
         <param name="x" value="$(var x)" />
@@ -24,6 +26,6 @@
         <param name="clear_costmaps" value="$(var clear_costmaps)" />
 
         <param name="localiser" value="amcl" />
-        <remap from="init_pose/cov" to="/initialpose" /> <!-- compatible with Nav2 AMCL -->
+        <remap from="init_pose/cov" to="initialpose" /> <!-- compatible with Nav2 AMCL -->
     </node>
 </launch>

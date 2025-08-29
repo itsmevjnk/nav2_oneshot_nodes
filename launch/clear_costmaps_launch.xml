@@ -1,3 +1,5 @@
 <launch>
-    <node exec="clear_costmaps" pkg="nav2_oneshot_nodes" name="clear_costmaps" output="screen" />
+    <arg name="namespace" default="/" />
+    
+    <node exec="clear_costmaps" pkg="nav2_oneshot_nodes" name="clear_costmaps" output="screen" namespace="$(var namespace)" />
 </launch>

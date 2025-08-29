@@ -24,7 +24,7 @@ class SetGoal(Node):
         self.yaw = self.declare_parameter('yaw', 0.0).get_parameter_value().double_value # in radians
 
         navigator = self.declare_parameter('navigator', 'bt_navigator').get_parameter_value().string_value
-        navigator_state_srv = self.create_client(GetState, f'/{navigator}/get_state')
+        navigator_state_srv = self.create_client(GetState, f'{navigator}/get_state')
         while not navigator_state_srv.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(f'waiting for navigator node {navigator} to show up')
         while True:

@@ -32,7 +32,7 @@ class LocalisationInit(Node):
         self.clear_costmap_srvs = dict()
         if clear_costmaps:
             self.clear_costmap_srvs = {
-                node: self.create_client(ClearEntireCostmap, f'/{node}/clear_entirely_{node}')
+                node: self.create_client(ClearEntireCostmap, f'{node}/clear_entirely_{node}')
                 for node in ['local_costmap', 'global_costmap']
             }
         
@@ -54,7 +54,7 @@ class LocalisationInit(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         localiser = self.declare_parameter('localiser', 'amcl').get_parameter_value().string_value
-        localiser_state_srv = self.create_client(GetState, f'/{localiser}/get_state')
+        localiser_state_srv = self.create_client(GetState, f'{localiser}/get_state')
         while not localiser_state_srv.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(f'waiting for localiser node {localiser} to show up')
         while True:
