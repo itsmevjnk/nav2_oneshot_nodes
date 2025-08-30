@@ -27,16 +27,20 @@ class SetGoal(Node):
         navigator_state_srv = self.create_client(GetState, f'{navigator}/get_state')
         while not navigator_state_srv.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(f'waiting for navigator node {navigator} to show up')
-        while True:
+        done = False
+        while not done:
             future = navigator_state_srv.call_async(GetState.Request())
-            rclpy.spin_until_future_complete(self, future) # we can ONLY do this outside of callbacks!
-            if future.result() is None:
-                self.get_logger().error(f'navigator node {navigator} returned null for state retrieval request')
-            else:
-                state = future.result().current_state.label
-                self.get_logger().info(f'navigator node {navigator} status: {state}')
-                if state == 'active': break
-            time.sleep(0.5)
+            while True:
+                rclpy.spin_until_future_complete(self, future, timeout_sec=0.25) # we can ONLY do this outside of callbacks!
+                if not future.done(): continue
+                if future.result() is None:
+                    self.get_logger().error(f'navigator node {navigator} returned null for state retrieval request')
+                else:
+                    state = future.result().current_state.label
+                    self.get_logger().info(f'navigator node {navigator} status: {state}')
+                    if state == 'active':
+                        done = True 
+                break
 
         qos_profile = qos.QoSProfile(
             reliability=qos.QoSReliabilityPolicy.RELIABLE,
