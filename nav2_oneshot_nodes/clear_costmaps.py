@@ -8,7 +8,7 @@ def main():
     node = Node('clear_costmaps')
 
     for node_name in ['local_costmap', 'global_costmap']:
-        service = node.create_client(ClearEntireCostmap, f'/{node_name}/clear_entirely_{node_name}')
+        service = node.create_client(ClearEntireCostmap, f'{node_name}/clear_entirely_{node_name}')
         while not service.wait_for_service(timeout_sec=1.0):
             node.get_logger().info(f'waiting until costmap node {node_name} is available')
         node.get_logger().info(f'clearing costmap provided by node {node_name}')
